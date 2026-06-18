@@ -41,6 +41,18 @@ A modern, cross-platform desktop application for managing personal finances, exp
 - Smooth animations and transitions
 - Accessible components following WAI-ARIA guidelines
 
+## 📸 Screenshots
+
+| Screenshot | Description |
+|---|---|
+| ![Dashboard](docs/dashboard.png) | **Dashboard** — Real-time expense overview with budget vs. actual spending, category breakdown, and interactive charts powered by Recharts. |
+| ![Payroll](docs/payroll.png) | **Payroll Management** — Create and manage monthly salary entries, track income, and monitor budget allocation with detailed payroll history. |
+| ![Expense Types](docs/expense-types.png) | **Expense Categories** — Categorized expense management with custom categories, quantity-based tracking, due dates, and notes. |
+| ![Payroll Detail](docs/parent-detail.png) | **Payroll Detail** — Detailed view of individual payroll entries with expense breakdown and budget utilization. |
+| ![Settings](docs/settings.png) | **Settings** — Password change, preferred currency configuration, and avatar/profile management. |
+| ![Auth](docs/auth.png) | **Login** — Secure authentication with NextAuth.js session management and bcrypt password hashing. |
+| ![Sign Up](docs/signup.png) | **Registration** — User registration with form validation powered by React Hook Form and Zod. |
+
 ## 🛠️ Tech Stack
 
 ### Frontend

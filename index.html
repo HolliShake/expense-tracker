@@ -583,6 +583,78 @@
     }
     footer .social-links a:hover { color: var(--text-primary); }
 
+    /* ===== Screenshots ===== */
+    .screenshots-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+      margin-top: 40px;
+    }
+
+    .screenshot-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: all 0.2s ease;
+    }
+
+    .screenshot-card:hover {
+      border-color: var(--border-light);
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-2px);
+    }
+
+    .screenshot-card img {
+      display: block;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 16 / 10;
+      object-fit: cover;
+      object-position: top;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .screenshot-card .caption {
+      padding: 14px 18px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    /* ===== Footer ===== */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 24px;
+      background: var(--bg-secondary);
+    }
+
+    footer .footer-inner {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    footer p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    footer .social-links {
+      display: flex;
+      gap: 16px;
+    }
+
+    footer .social-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
     /* ===== Responsive ===== */
     @media (max-width: 768px) {
       .nav-links { display: none; }
@@ -1037,32 +1109,36 @@ npx drizzle-kit migrate</code></pre>
     <div class="section-inner">
       <div class="section-label">Screenshots</div>
       <h2 class="section-title">See it in action</h2>
-      <p class="section-subtitle">A glimpse into the Expense Tracker interface. (Actual screenshots coming soon.)</p>
+      <p class="section-subtitle">A glimpse into the Expense Tracker interface.</p>
 
       <div class="screenshots-grid">
         <div class="screenshot-card">
-          <div class="screenshot-placeholder">📊</div>
-          <div class="caption">Dashboard with analytics and charts</div>
+          <img src="docs/dashboard.png" alt="Dashboard with analytics and charts" loading="lazy" />
+          <div class="caption">📊 Dashboard with analytics and charts</div>
         </div>
         <div class="screenshot-card">
-          <div class="screenshot-placeholder">💼</div>
-          <div class="caption">Payroll management view</div>
+          <img src="docs/payroll.png" alt="Payroll management view" loading="lazy" />
+          <div class="caption">💼 Payroll management view</div>
         </div>
         <div class="screenshot-card">
-          <div class="screenshot-placeholder">🧾</div>
-          <div class="caption">Expense tracking with categories</div>
+          <img src="docs/expense-types.png" alt="Expense tracking with categories" loading="lazy" />
+          <div class="caption">🧾 Expense tracking with categories</div>
         </div>
         <div class="screenshot-card">
-          <div class="screenshot-placeholder">⚙️</div>
-          <div class="caption">Settings & profile management</div>
+          <img src="docs/settings.png" alt="Settings & profile management" loading="lazy" />
+          <div class="caption">⚙️ Settings & profile management</div>
         </div>
         <div class="screenshot-card">
-          <div class="screenshot-placeholder">🌓</div>
-          <div class="caption">Dark & light theme support</div>
+          <img src="docs/parent-detail.png" alt="Payroll parent detail view" loading="lazy" />
+          <div class="caption">📋 Payroll detail & budget breakdown</div>
         </div>
         <div class="screenshot-card">
-          <div class="screenshot-placeholder">🔐</div>
-          <div class="caption">Secure login & registration</div>
+          <img src="docs/auth.png" alt="Login page" loading="lazy" />
+          <div class="caption">🔐 Secure login</div>
+        </div>
+        <div class="screenshot-card">
+          <img src="docs/signup.png" alt="Sign up page" loading="lazy" />
+          <div class="caption">📝 User registration</div>
         </div>
       </div>
     </div>
