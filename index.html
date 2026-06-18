@@ -7,6 +7,12 @@
   <meta name="description" content="A modern, cross-platform desktop application for managing personal finances, expenses, and payroll. Built with Electron and Next.js." />
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>" />
 
+  <!-- Recharts from CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+
   <style>
     /* ===== CSS Variables / Theme ===== */
     :root {
@@ -514,73 +520,67 @@
       margin-top: 6px;
     }
 
-    /* ===== Desktop Screenshots ===== */
-    #screenshots { background: var(--bg-secondary); }
-    .screenshots-grid {
+    /* ===== Dashboard / Charts ===== */
+    .dashboard-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
       margin-top: 40px;
     }
 
-    .screenshot-card {
+    .dashboard-card {
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      overflow: hidden;
-      transition: all 0.2s ease;
+      padding: 24px;
     }
 
-    .screenshot-card:hover { border-color: var(--border-light); box-shadow: var(--shadow-lg); }
-
-    .screenshot-placeholder {
-      aspect-ratio: 16 / 10;
-      background: linear-gradient(135deg, var(--bg-secondary), var(--bg-card));
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 3rem;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .screenshot-card .caption {
-      padding: 16px;
-      font-size: 0.9rem;
-      font-weight: 500;
+    .dashboard-card h3 {
+      font-size: 1rem;
+      font-weight: 600;
       color: var(--text-secondary);
+      margin-bottom: 4px;
     }
 
-    /* ===== Footer ===== */
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 32px 24px;
-      text-align: center;
+    .dashboard-card .value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text-primary);
     }
 
-    footer .footer-inner {
-      max-width: var(--max-width);
-      margin: 0 auto;
+    .dashboard-card .change {
+      font-size: 0.85rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    .change-up { color: var(--success); }
+    .change-down { color: #fb7185; }
+
+    .dashboard-card .subtitle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .dashboard-chart-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      grid-column: 1 / -1;
+    }
+
+    .dashboard-chart-card .chart-header {
       display: flex;
-      flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
     }
-
-    footer p { font-size: 0.85rem; color: var(--text-muted); }
-
-    footer .social-links {
-      display: flex;
-      gap: 16px;
-    }
-
-    footer .social-links a {
-      color: var(--text-muted);
-      text-decoration: none;
-      font-size: 0.85rem;
-      transition: color 0.2s;
-    }
-
     footer .social-links a:hover { color: var(--text-primary); }
 
     /* ===== Responsive ===== */

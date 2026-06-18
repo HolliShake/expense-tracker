@@ -22,7 +22,18 @@ import {
     AlertCircle,
     Layers,
     BarChart3,
+    LineChart as LineChartIcon,
 } from "lucide-react";
+import {
+    LineChart as RechartsLineChart,
+    Line,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    ResponsiveContainer,
+    Legend,
+} from "recharts";
 
 interface DashboardStats {
     totalSalaries: number;
@@ -40,10 +51,21 @@ interface DashboardStats {
     budgetUtilization: number;
 }
 
+interface PayrollHistoryItem {
+    month: string;
+    year: number;
+    totalBudget: number;
+    totalExpenses: number;
+    remaining: number;
+    utilization: number;
+}
+
 export default function DashboardPage() {
     const { session, status } = useAuth();
     const router = useRouter();
     const [stats, setStats] = useState<DashboardStats | null>(null);
+    const [payrollHistory, setPayrollHistory] = useState<PayrollHistoryItem[]>([]);
+    const [historyLoading, setHistoryLoading] = useState(true);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -54,19 +76,28 @@ export default function DashboardPage() {
         setError(null);
 
         try {
-            const response = await fetch(`/api/dashboard/stats?userId=${session.user.id}`);
+            const [statsResponse, historyResponse] = await Promise.all([
+                fetch(`/api/dashboard/stats?userId=${session.user.id}`),
+                fetch(`/api/dashboard/payroll-history?userId=${session.user.id}`),
+            ]);
 
-            if (!response.ok) {
+            if (!statsResponse.ok) {
                 throw new Error("Failed to fetch dashboard statistics");
             }
 
-            const data = await response.json();
-            setStats(data);
+            const statsData = await statsResponse.json();
+            setStats(statsData);
+
+            if (historyResponse.ok) {
+                const historyData = await historyResponse.json();
+                setPayrollHistory(historyData.history || []);
+            }
         } catch (err) {
             console.error("Error fetching dashboard stats:", err);
             setError("Failed to load dashboard data. Please try again.");
         } finally {
             setLoading(false);
+            setHistoryLoading(false);
         }
     }, [session]);
 
@@ -77,6 +108,16 @@ export default function DashboardPage() {
     }, [status, fetchStats]);
 
     const { formatCurrency } = useCurrency();
+
+    const formatMonthLabel = (month: string, year: number) => {
+        const monthNames = [
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+        ];
+        const monthIndex = monthNames.indexOf(month);
+        if (monthIndex === -1) return `${month.slice(0, 3)} ${year}`;
+        return `${month.slice(0, 3)} ${year}`;
+    };
 
     const getUtilizationColor = (percent: number) => {
         if (percent >= 90) return "bg-red-500";
@@ -470,6 +511,111 @@ export default function DashboardPage() {
                                 </div>
                                 <p className="text-sm text-muted-foreground">
                                     No payrolls created yet
+                                </p>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => router.push("/dashboard/payroll")}
+                                >
+                                    Create your first payroll
+                                </Button>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+
+                {/* Payroll History Chart */}
+                <Card className="mt-6 shadow-sm">
+                    <CardHeader>
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <CardTitle className="flex items-center gap-2">
+                                    <LineChartIcon className="h-5 w-5 text-primary" />
+                                    Payroll History
+                                </CardTitle>
+                                <CardDescription>
+                                    Budget vs expenses over time
+                                </CardDescription>
+                            </div>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        {historyLoading ? (
+                            <div className="space-y-3">
+                                <Skeleton className="h-[300px] w-full" />
+                            </div>
+                        ) : payrollHistory.length > 0 ? (
+                            <div className="h-[350px] w-full">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <RechartsLineChart
+                                        data={payrollHistory.map((item) => ({
+                                            name: formatMonthLabel(item.month, item.year),
+                                            Budget: item.totalBudget,
+                                            Expenses: item.totalExpenses,
+                                            Remaining: Math.max(0, item.remaining),
+                                        }))}
+                                        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                                    >
+                                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                                        <XAxis
+                                            dataKey="name"
+                                            tick={{ fontSize: 12 }}
+                                            className="text-muted-foreground"
+                                        />
+                                        <YAxis
+                                            tick={{ fontSize: 12 }}
+                                            className="text-muted-foreground"
+                                            tickFormatter={(value) => {
+                                                if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
+                                                if (value >= 1000) return `${(value / 1000).toFixed(0)}K`;
+                                                return value.toString();
+                                            }}
+                                        />
+                                        <Tooltip
+                                            contentStyle={{
+                                                backgroundColor: "hsl(var(--popover))",
+                                                border: "1px solid hsl(var(--border))",
+                                                borderRadius: "8px",
+                                                color: "hsl(var(--popover-foreground))",
+                                            }}
+                                            formatter={(value: number) => [formatCurrency(value), undefined]}
+                                        />
+                                        <Legend />
+                                        <Line
+                                            type="monotone"
+                                            dataKey="Budget"
+                                            stroke="hsl(142.1 76.2% 36.3%)"
+                                            strokeWidth={2}
+                                            dot={{ r: 4, fill: "hsl(142.1 76.2% 36.3%)" }}
+                                            activeDot={{ r: 6 }}
+                                        />
+                                        <Line
+                                            type="monotone"
+                                            dataKey="Expenses"
+                                            stroke="hsl(0 72.2% 50.6%)"
+                                            strokeWidth={2}
+                                            dot={{ r: 4, fill: "hsl(0 72.2% 50.6%)" }}
+                                            activeDot={{ r: 6 }}
+                                        />
+                                        <Line
+                                            type="monotone"
+                                            dataKey="Remaining"
+                                            stroke="hsl(221.2 83.2% 53.3%)"
+                                            strokeWidth={2}
+                                            strokeDasharray="5 5"
+                                            dot={{ r: 4, fill: "hsl(221.2 83.2% 53.3%)" }}
+                                            activeDot={{ r: 6 }}
+                                        />
+                                    </RechartsLineChart>
+                                </ResponsiveContainer>
+                            </div>
+                        ) : (
+                            <div className="flex flex-col items-center gap-3 py-8 text-center">
+                                <div className="rounded-full bg-muted p-3">
+                                    <LineChartIcon className="h-6 w-6 text-muted-foreground" />
+                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                    No payroll history available yet
                                 </p>
                                 <Button
                                     variant="outline"
