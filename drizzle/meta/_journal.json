@@ -64,6 +64,20 @@
       "when": 1781735978719,
       "tag": "0008_gigantic_rhino",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1781790022192,
+      "tag": "0009_settings_fields",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1781790057436,
+      "tag": "0010_settings_fields",
+      "breakpoints": true
     }
   ]
 }

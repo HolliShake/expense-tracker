@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
-import { signOut } from "next-auth/react";
 import { useAuth } from "@/context/auth-context";
+import { useCurrency } from "@/hooks/use-currency";
 import { useRouter } from "next/navigation";
 import {
     TrendingUp,
@@ -16,7 +16,6 @@ import {
     Wallet,
     PiggyBank,
     FileText,
-    LogOut,
     PlusCircle,
     List,
     RefreshCw,
@@ -77,14 +76,7 @@ export default function DashboardPage() {
         }
     }, [status, fetchStats]);
 
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat("en-US", {
-            style: "currency",
-            currency: "USD",
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-        }).format(amount);
-    };
+    const { formatCurrency } = useCurrency();
 
     const getUtilizationColor = (percent: number) => {
         if (percent >= 90) return "bg-red-500";
@@ -109,43 +101,10 @@ export default function DashboardPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-indigo-950">
-            {/* Top Navigation Bar */}
-            <header className="sticky top-0 z-50 border-b bg-white/80 backdrop-blur-md dark:bg-gray-900/80 dark:border-gray-800">
-                <div className="container mx-auto flex h-16 items-center justify-between px-6">
-                    <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600">
-                            <Wallet className="h-5 w-5 text-white" />
-                        </div>
-                        <div>
-                            <h1 className="text-xl font-bold tracking-tight">Expense Tracker</h1>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={fetchStats}
-                            disabled={loading}
-                        >
-                            <RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-                            Refresh
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => signOut({ callbackUrl: "/auth/login" })}
-                        >
-                            <LogOut className="mr-2 h-4 w-4" />
-                            Sign Out
-                        </Button>
-                    </div>
-                </div>
-            </header>
-
             <div className="container mx-auto px-6 py-8">
                 {/* Welcome Section */}
-                <div className="mb-8">
-                    <div className="flex flex-col gap-1">
+                <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
                         <h2 className="text-3xl font-bold tracking-tight">
                             Welcome back, {session.user?.name || session.user?.email?.split("@")[0] || "User"}!
                         </h2>
@@ -153,6 +112,15 @@ export default function DashboardPage() {
                             {`Here's an overview of your financial activity`}
                         </p>
                     </div>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={fetchStats}
+                        disabled={loading}
+                    >
+                        <RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+                        Refresh
+                    </Button>
                 </div>
 
                 {/* Error Banner */}
@@ -168,7 +136,7 @@ export default function DashboardPage() {
 
                 {/* Summary Cards */}
                 <div className="mb-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                    <Card className="border-l-4 border-l-emerald-500 shadow-sm transition-shadow hover:shadow-md">
+                    <Card className="shadow-sm transition-shadow hover:shadow-md">
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                             <CardTitle className="text-sm font-medium text-muted-foreground">
                                 Total Budget
@@ -193,7 +161,7 @@ export default function DashboardPage() {
                         </CardContent>
                     </Card>
 
-                    <Card className="border-l-4 border-l-blue-500 shadow-sm transition-shadow hover:shadow-md">
+                    <Card className="shadow-sm transition-shadow hover:shadow-md">
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                             <CardTitle className="text-sm font-medium text-muted-foreground">
                                 Total Expenses
@@ -218,7 +186,7 @@ export default function DashboardPage() {
                         </CardContent>
                     </Card>
 
-                    <Card className="border-l-4 border-l-purple-500 shadow-sm transition-shadow hover:shadow-md">
+                    <Card className="shadow-sm transition-shadow hover:shadow-md">
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                             <CardTitle className="text-sm font-medium text-muted-foreground">
                                 Avg. Expense
@@ -243,7 +211,7 @@ export default function DashboardPage() {
                         </CardContent>
                     </Card>
 
-                    <Card className="border-l-4 border-l-orange-500 shadow-sm transition-shadow hover:shadow-md">
+                    <Card className="shadow-sm transition-shadow hover:shadow-md">
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                             <CardTitle className="text-sm font-medium text-muted-foreground">
                                 Categories

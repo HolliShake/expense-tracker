@@ -5,6 +5,8 @@ export const UsersTable = sqliteTable("users_table", {
   name: text().notNull(),
   email: text().notNull().unique(),
   passwordHash: text().notNull(),
+  avatarUrl: text().default(''),
+  currency: text().default('PHP'),
 });
 
 export const SalaryTable = sqliteTable("salary_table", {
