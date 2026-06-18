@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Expense Tracker - Cross-Platform Desktop Finance Manager</title>
+  <meta name="description" content="A modern, cross-platform desktop application for managing personal finances, expenses, and payroll. Built with Electron and Next.js." />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>" />
+
+  <style>
+    /* ===== CSS Variables / Theme ===== */
+    :root {
+      --bg-primary: #0f0f0f;
+      --bg-secondary: #1a1a2e;
+      --bg-card: #1e1e32;
+      --bg-hover: #252540;
+      --bg-code: #16162a;
+      --text-primary: #e2e8f0;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent: #818cf8;
+      --accent-hover: #6d74f0;
+      --accent-glow: rgba(129, 140, 248, 0.15);
+      --success: #34d399;
+      --warning: #fbbf24;
+      --border: #2e2e4a;
+      --border-light: rgba(129, 140, 248, 0.12);
+      --radius: 12px;
+      --radius-sm: 8px;
+      --radius-lg: 16px;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace;
+      --max-width: 1100px;
+    }
+
+    [data-theme="light"] {
+      --bg-primary: #f8fafc;
+      --bg-secondary: #eef2f7;
+      --bg-card: #ffffff;
+      --bg-hover: #f1f5f9;
+      --bg-code: #f1f5f9;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+      --border: #e2e8f0;
+      --border-light: rgba(129, 140, 248, 0.2);
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.03);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+    }
+
+    /* ===== Reset & Base ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* ===== Theme Toggle ===== */
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-primary);
+      font-size: 1.2rem;
+      box-shadow: var(--shadow);
+      transition: all 0.2s ease;
+    }
+
+    .theme-toggle:hover {
+      background: var(--bg-hover);
+      transform: scale(1.05);
+    }
+
+    /* ===== Navigation ===== */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 999;
+      background: rgba(15, 15, 15, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      transition: background 0.3s;
+    }
+
+    [data-theme="light"] nav {
+      background: rgba(248, 250, 252, 0.85);
+    }
+
+    .nav-inner {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 1.15rem;
+      color: var(--text-primary);
+      text-decoration: none;
+    }
+
+    .nav-logo span { background: linear-gradient(135deg, var(--accent), #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--text-primary); background: var(--bg-hover); }
+
+    .nav-links .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      padding: 8px 18px;
+      border-radius: var(--radius-sm);
+    }
+
+    .nav-links .btn-primary:hover { background: var(--accent-hover); }
+
+    .mobile-menu-btn {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--text-primary);
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    /* ===== Sections ===== */
+    section { padding: 100px 24px; }
+
+    .section-inner {
+      max-width: var(--max-width);
+      margin: 0 auto;
+    }
+
+    .section-label {
+      display: inline-block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-size: 2.5rem;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 20px;
+    }
+
+    .section-subtitle {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      max-width: 640px;
+    }
+
+    /* ===== Hero ===== */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -30%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 700px;
+      height: 700px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-content { position: relative; z-index: 1; max-width: 720px; }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: var(--accent-glow);
+      border: 1px solid var(--border-light);
+      color: var(--accent);
+      font-size: 0.85rem;
+      font-weight: 500;
+      margin-bottom: 24px;
+    }
+
+    .hero h1 {
+      font-size: 3.5rem;
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 24px;
+      letter-spacing: -0.02em;
+    }
+
+    .hero h1 .highlight { background: linear-gradient(135deg, var(--accent), #a78bfa, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+    .hero p {
+      font-size: 1.2rem;
+      color: var(--text-secondary);
+      max-width: 560px;
+      margin: 0 auto 36px;
+    }
+
+    .hero-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border-radius: var(--radius-sm);
+      font-size: 1rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(129, 140, 248, 0.3);
+    }
+
+    .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(129, 140, 248, 0.4); }
+
+    .btn-secondary {
+      background: var(--bg-card);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover { background: var(--bg-hover); border-color: var(--text-muted); }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid transparent;
+    }
+
+    .btn-ghost:hover { color: var(--text-primary); background: var(--bg-hover); }
+
+    .hero-features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      justify-content: center;
+      margin-top: 48px;
+      padding-top: 32px;
+      border-top: 1px solid var(--border);
+    }
+
+    .hero-features span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    /* ===== Features ===== */
+    #features { background: var(--bg-secondary); }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      margin-top: 48px;
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      transition: all 0.2s ease;
+    }
+
+    .feature-card:hover { border-color: var(--border-light); box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      margin-bottom: 16px;
+      background: var(--accent-glow);
+    }
+
+    .feature-card h3 { font-size: 1.15rem; font-weight: 600; margin-bottom: 8px; }
+
+    .feature-card p { font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6; }
+
+    /* ===== Tech Stack ===== */
+    .tech-stack { margin-top: 60px; text-align: center; }
+
+    .tech-stack h3 { font-size: 1rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 20px; }
+
+    .tech-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .tech-badge {
+      padding: 8px 16px;
+      border-radius: 999px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      transition: all 0.2s;
+    }
+
+    .tech-badge:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ===== Installation ===== */
+    #installation .section-inner { max-width: 780px; }
+
+    .install-steps {
+      margin-top: 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .install-step {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+
+    .step-number {
+      flex-shrink: 0;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--accent-glow);
+      border: 1px solid var(--border-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--accent);
+    }
+
+    .step-content { flex: 1; }
+
+    .step-content h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: 6px; }
+
+    .step-content p { font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 8px; }
+
+    .step-content code {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: var(--bg-code);
+      border: 1px solid var(--border);
+      color: var(--accent);
+    }
+
+    pre {
+      background: var(--bg-code);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 20px;
+      overflow-x: auto;
+      margin: 12px 0;
+    }
+
+    pre code {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--text-primary);
+      line-height: 1.7;
+      background: none;
+      padding: 0;
+      border: none;
+    }
+
+    /* Syntax highlighting */
+    .hl-comment { color: var(--text-muted); font-style: italic; }
+    .hl-keyword { color: #c084fc; }
+    .hl-string { color: #34d399; }
+    .hl-func { color: #818cf8; }
+    .hl-var { color: #fbbf24; }
+    .hl-num { color: #f472b6; }
+
+    .copy-btn {
+      float: right;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .copy-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+    .copy-btn.copied { color: var(--success); border-color: var(--success); }
+
+    /* ===== API ===== */
+    .api-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 16px;
+      margin-top: 40px;
+    }
+
+    .api-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 20px;
+    }
+
+    .api-card .method {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-right: 8px;
+      text-transform: uppercase;
+    }
+
+    .method-get { background: rgba(52, 211, 153, 0.15); color: var(--success); }
+    .method-post { background: rgba(129, 140, 248, 0.15); color: var(--accent); }
+    .method-put { background: rgba(251, 191, 36, 0.15); color: var(--warning); }
+    .method-delete { background: rgba(251, 113, 133, 0.15); color: #fb7185; }
+
+    .api-card .endpoint {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: var(--text-primary);
+    }
+
+    .api-card .desc {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-top: 6px;
+    }
+
+    /* ===== Desktop Screenshots ===== */
+    #screenshots { background: var(--bg-secondary); }
+    .screenshots-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-top: 40px;
+    }
+
+    .screenshot-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: all 0.2s ease;
+    }
+
+    .screenshot-card:hover { border-color: var(--border-light); box-shadow: var(--shadow-lg); }
+
+    .screenshot-placeholder {
+      aspect-ratio: 16 / 10;
+      background: linear-gradient(135deg, var(--bg-secondary), var(--bg-card));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .screenshot-card .caption {
+      padding: 16px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    /* ===== Footer ===== */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 24px;
+      text-align: center;
+    }
+
+    footer .footer-inner {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    footer p { font-size: 0.85rem; color: var(--text-muted); }
+
+    footer .social-links {
+      display: flex;
+      gap: 16px;
+    }
+
+    footer .social-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.85rem;
+      transition: color 0.2s;
+    }
+
+    footer .social-links a:hover { color: var(--text-primary); }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .mobile-menu-btn { display: block; }
+
+      .nav-links.open {
+        display: flex;
+        flex-direction: column;
+        position: absolute;
+        top: 64px;
+        left: 0;
+        right: 0;
+        background: var(--bg-primary);
+        border-bottom: 1px solid var(--border);
+        padding: 16px 24px;
+        gap: 4px;
+      }
+
+      .hero h1 { font-size: 2.2rem; }
+      .section-title { font-size: 1.8rem; }
+      .hero p { font-size: 1rem; }
+
+      .features-grid { grid-template-columns: 1fr; }
+
+      .install-step { flex-direction: column; gap: 12px; }
+
+      .step-number { width: 32px; height: 32px; font-size: 0.85rem; }
+
+      .api-grid { grid-template-columns: 1fr; }
+
+      footer .footer-inner { flex-direction: column; text-align: center; }
+    }
+
+    @media (max-width: 480px) {
+      section { padding: 60px 16px; }
+      .hero { padding: 100px 16px 60px; }
+      .hero h1 { font-size: 1.8rem; }
+      .hero-buttons { flex-direction: column; align-items: center; }
+      .hero-buttons .btn { width: 100%; justify-content: center; }
+      .hero-features { gap: 12px; }
+      .screenshots-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ===== Utils ===== */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeIn 0.6s ease forwards;
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-in:nth-child(2) { animation-delay: 0.1s; }
+    .fade-in:nth-child(3) { animation-delay: 0.2s; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+  </style>
+</head>
+
+<body>
+  <!-- ===== Theme Toggle ===== -->
+  <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme" onclick="toggleTheme()">🌙</button>
+
+  <!-- ===== Navigation ===== -->
+  <nav>
+    <div class="nav-inner">
+      <a href="#" class="nav-logo">
+        <span>💰</span>
+        <span>Expense Tracker</span>
+      </a>
+      <button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMobileMenu()" aria-label="Menu">☰</button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#installation">Installation</a></li>
+        <li><a href="#api">API</a></li>
+        <li><a href="#screenshots">Screenshots</a></li>
+        <li><a href="https://github.com/HolliShake/expense-tracker" target="_blank" rel="noopener" class="btn-primary">View on GitHub</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ===== Hero ===== -->
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-badge fade-in">🚀 v0.0.1 &middot; Electron + Next.js</div>
+      <h1 class="fade-in">
+        Take Control of Your<br />
+        <span class="highlight">Personal Finances</span>
+      </h1>
+      <p class="fade-in">
+        A modern, cross-platform desktop app for managing expenses, payroll, and budgets.
+        Built with Electron, Next.js, and TypeScript.
+      </p>
+      <div class="hero-buttons fade-in">
+        <a href="#installation" class="btn btn-primary">📥 Get Started</a>
+        <a href="https://github.com/HolliShake/expense-tracker" target="_blank" rel="noopener" class="btn btn-secondary">⭐ Star on GitHub</a>
+      </div>
+      <div class="hero-features fade-in">
+        <span>✅ Payroll Management</span>
+        <span>✅ Expense Tracking</span>
+        <span>✅ Dashboard Analytics</span>
+        <span>✅ Secure Auth</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Features ===== -->
+  <section id="features">
+    <div class="section-inner">
+      <div class="section-label">Features</div>
+      <h2 class="section-title">Everything you need to manage your money</h2>
+      <p class="section-subtitle">From tracking daily expenses to managing monthly payroll, Expense Tracker provides a complete financial toolkit.</p>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">💼</div>
+          <h3>Payroll Management</h3>
+          <p>Create and manage monthly salary entries, track income across different time periods, and monitor budget allocation with detailed payroll history.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🧾</div>
+          <h3>Expense Tracking</h3>
+          <p>Track expenses by category with custom categories, quantity-based tracking, notes, and due date management for pending payments.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <h3>Dashboard & Analytics</h3>
+          <p>Real-time expense overview with budget vs. actual spending visualization, category-wise breakdown, and interactive charts powered by Recharts.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🔐</div>
+          <h3>Secure Authentication</h3>
+          <p>User registration and login with bcrypt password hashing, NextAuth.js session management, and protected API endpoints.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🎨</div>
+          <h3>Modern UI/UX</h3>
+          <p>Clean interface built with Radix UI and shadcn/ui. Dark/light theme support, responsive design with Tailwind CSS, and accessible components.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">💾</div>
+          <h3>Local SQLite Database</h3>
+          <p>All data stored locally using SQLite via Drizzle ORM. No cloud dependency — your financial data stays on your machine.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h3>Cross-Platform Desktop</h3>
+          <p>Packaged with Electron, runs on Windows, macOS, and Linux. Combines the power of web technologies with native desktop capabilities.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🌓</div>
+          <h3>Dark & Light Themes</h3>
+          <p>Switch between dark and light modes with next-themes. Designed for comfortable use day or night.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🔌</div>
+          <h3>RESTful API</h3>
+          <p>Full REST API for expenses, payroll, categories, and authentication. Built with Next.js API Routes for easy extensibility.</p>
+        </div>
+      </div>
+
+      <div class="tech-stack">
+        <h3>Built With</h3>
+        <div class="tech-badges">
+          <span class="tech-badge">Electron 39</span>
+          <span class="tech-badge">Next.js 16</span>
+          <span class="tech-badge">React 19</span>
+          <span class="tech-badge">TypeScript</span>
+          <span class="tech-badge">Tailwind CSS</span>
+          <span class="tech-badge">Radix UI</span>
+          <span class="tech-badge">shadcn/ui</span>
+          <span class="tech-badge">Drizzle ORM</span>
+          <span class="tech-badge">SQLite</span>
+          <span class="tech-badge">NextAuth.js</span>
+          <span class="tech-badge">Recharts</span>
+          <span class="tech-badge">bcrypt</span>
+          <span class="tech-badge">Zod</span>
+          <span class="tech-badge">React Hook Form</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Installation ===== -->
+  <section id="installation">
+    <div class="section-inner">
+      <div class="section-label">Installation</div>
+      <h2 class="section-title">Get up and running in minutes</h2>
+      <p class="section-subtitle">Follow these steps to install and run Expense Tracker on your machine.</p>
+
+      <div class="install-steps">
+        <!-- Step 1 -->
+        <div class="install-step">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <h3>Prerequisites</h3>
+            <p>Ensure you have <strong>Node.js</strong> (v20 or higher) and <strong>npm</strong> (or yarn / pnpm / bun) installed.</p>
+            <pre><code><span class="hl-comment"># Check your Node.js version</span>
+node --version
+<span class="hl-comment"># Should be v20.x or higher</span></code></pre>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="install-step">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <h3>Clone the repository</h3>
+            <pre><code>git clone https://github.com/HolliShake/expense-tracker.git
+cd expense-tracker</code></pre>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="install-step">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <h3>Install dependencies</h3>
+            <pre><code>npm install
+<span class="hl-comment"># or</span>
+yarn install
+<span class="hl-comment"># or</span>
+pnpm install
+<span class="hl-comment"># or</span>
+bun install</code></pre>
+          </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="install-step">
+          <div class="step-number">4</div>
+          <div class="step-content">
+            <h3>Configure environment variables</h3>
+            <p>Create a <code>.env</code> file in the project root:</p>
+            <pre><code><span class="hl-comment"># Database</span>
+DB_FILE_NAME=./local.db
+
+<span class="hl-comment"># NextAuth Configuration</span>
+NEXTAUTH_URL=http://localhost:3001
+NEXTAUTH_SECRET=<span class="hl-string">your-secret-key-here</span>
+
+<span class="hl-comment"># Node Environment</span>
+NODE_ENV=development</code></pre>
+            <p>You can generate a secure random secret with:</p>
+            <pre><code>openssl rand -base64 32
+<span class="hl-comment"># or use any random string</span></code></pre>
+          </div>
+        </div>
+
+        <!-- Step 5 -->
+        <div class="install-step">
+          <div class="step-number">5</div>
+          <div class="step-content">
+            <h3>Initialize the database</h3>
+            <pre><code><span class="hl-comment"># Generate migrations</span>
+npx drizzle-kit generate
+
+<span class="hl-comment"># Apply migrations</span>
+npx drizzle-kit migrate</code></pre>
+          </div>
+        </div>
+
+        <!-- Step 6 -->
+        <div class="install-step">
+          <div class="step-number">6</div>
+          <div class="step-content">
+            <h3>Start the development server</h3>
+            <p>This starts both the Next.js dev server (port 3001) and the Electron app simultaneously:</p>
+            <pre><code>npm run dev</code></pre>
+            <p>This uses <strong>concurrently</strong> to run:</p>
+            <ul style="color: var(--text-secondary); font-size: 0.95rem; padding-left: 20px; margin-top: 8px;">
+              <li><strong>Next.js</strong> dev server on <code>http://localhost:3001</code></li>
+              <li><strong>Electron</strong> app that opens automatically</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 48px; padding: 24px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);">
+        <h3 style="font-size: 1.05rem; font-weight: 600; margin-bottom: 12px;">🏗️ Building for Production</h3>
+        <p style="font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 12px;">Create an optimized production build with Electron Builder:</p>
+        <pre><code>npm run build</code></pre>
+        <p style="font-size: 0.95rem; color: var(--text-secondary);">This generates platform-specific installers for Windows (.exe), macOS (.dmg), and Linux (.AppImage / .deb) in the <code>dist/</code> directory.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== API ===== -->
+  <section id="api" style="background: var(--bg-secondary);">
+    <div class="section-inner">
+      <div class="section-label">API Reference</div>
+      <h2 class="section-title">RESTful API endpoints</h2>
+      <p class="section-subtitle">Every feature is backed by a clean REST API. Use these endpoints to integrate or extend the application.</p>
+
+      <div class="api-grid">
+        <!-- Auth -->
+        <div class="api-card">
+          <span class="method method-post">POST</span>
+          <span class="endpoint">/api/auth/signup</span>
+          <div class="desc">User registration</div>
+        </div>
+        <div class="api-card">
+          <span class="method method-get">GET</span>
+          <span class="endpoint">/api/auth/session</span>
+          <div class="desc">Get current session</div>
+        </div>
+        <div class="api-card">
+          <span class="method method-post">POST</span>
+          <span class="endpoint">/api/auth/[...nextauth]</span>
+          <div class="desc">NextAuth.js sign-in / sign-out</div>
+        </div>
+
+        <!-- Salary -->
+        <div class="api-card">
+          <span class="method method-get">GET</span>
+          <span class="endpoint">/api/salary</span>
+          <div class="desc">List all payrolls</div>
+        </div>
+        <div class="api-card">
+          <span class="method method-post">POST</span>
+          <span class="endpoint">/api/salary</span>
+          <div class="desc">Create new payroll</div>
+        </div>
+        <div class="api-card">
+          <span class="method method-get">GET</span>
+          <span class="endpoint">/api/salary/[id]</span>
+          <div class="desc">Get payroll details</div>
+        </div>
+        <div class="api-card">
+          <span class="method method-put">PUT</span>
+          <span class="endpoint">/api/salary/[id]</span>
+          <div class="desc">Update payroll</div>
+        </div>
+        <div class="api-card">
+          <span class="method method-delete">DELETE</span>
+          <span class="endpoint">/api/salary/[id]</span>
+          <div class="desc">Delete payroll</div>
+        </div>
+        <div class="api-card">
+          <span class="method method-get">GET</span>
+          <span class="endpoint">/api/salary/tiles</span>
+          <div class="desc">Dashboard statistics</div>
+        </div>
+
+        <!-- Expenses -->
+        <div class="api-card">
+          <span class="method method-get">GET</span>
+          <span class="endpoint">/api/expense</span>
+          <div class="desc">List expenses (supports <code>?salaryId=</code> filter)</div>
+        </div>
+        <div class="api-card">
+          <span class="method method-post">POST</span>
+          <span class="endpoint">/api/expense</span>
+          <div class="desc">Create expense</div>
+        </div>
+        <div class="api-card">
+          <span class="method method-get">GET</span>
+          <span class="endpoint">/api/expense/[id]</span>
+          <div class="desc">Get expense details</div>
+        </div>
+        <div class="api-card">
+          <span class="method method-put">PUT</span>
+          <span class="endpoint">/api/expense/[id]</span>
+          <div class="desc">Update expense</div>
+        </div>
+        <div class="api-card">
+          <span class="method method-delete">DELETE</span>
+          <span class="endpoint">/api/expense/[id]</span>
+          <div class="desc">Delete expense</div>
+        </div>
+        <div class="api-card">
+          <span class="method method-get">GET</span>
+          <span class="endpoint">/api/expense/salary/[id]</span>
+          <div class="desc">Get expenses for a specific payroll</div>
+        </div>
+
+        <!-- Expense Categories -->
+        <div class="api-card">
+          <span class="method method-get">GET</span>
+          <span class="endpoint">/api/expense-type</span>
+          <div class="desc">List all categories</div>
+        </div>
+        <div class="api-card">
+          <span class="method method-post">POST</span>
+          <span class="endpoint">/api/expense-type</span>
+          <div class="desc">Create category</div>
+        </div>
+        <div class="api-card">
+          <span class="method method-get">GET</span>
+          <span class="endpoint">/api/expense-type/[id]</span>
+          <div class="desc">Get category details</div>
+        </div>
+        <div class="api-card">
+          <span class="method method-put">PUT</span>
+          <span class="endpoint">/api/expense-type/[id]</span>
+          <div class="desc">Update category</div>
+        </div>
+        <div class="api-card">
+          <span class="method method-delete">DELETE</span>
+          <span class="endpoint">/api/expense-type/[id]</span>
+          <div class="desc">Delete category</div>
+        </div>
+
+        <!-- Dashboard -->
+        <div class="api-card">
+          <span class="method method-get">GET</span>
+          <span class="endpoint">/api/dashboard/stats</span>
+          <div class="desc">Dashboard statistics and charts data</div>
+        </div>
+
+        <!-- Settings -->
+        <div class="api-card">
+          <span class="method method-get">GET</span>
+          <span class="endpoint">/api/settings</span>
+          <div class="desc">Get user settings</div>
+        </div>
+        <div class="api-card">
+          <span class="method method-put">PUT</span>
+          <span class="endpoint">/api/settings/password</span>
+          <div class="desc">Update password</div>
+        </div>
+        <div class="api-card">
+          <span class="method method-put">PUT</span>
+          <span class="endpoint">/api/settings/currency</span>
+          <div class="desc">Update preferred currency</div>
+        </div>
+        <div class="api-card">
+          <span class="method method-put">PUT</span>
+          <span class="endpoint">/api/settings/avatar</span>
+          <div class="desc">Update profile avatar</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Screenshots ===== -->
+  <section id="screenshots">
+    <div class="section-inner">
+      <div class="section-label">Screenshots</div>
+      <h2 class="section-title">See it in action</h2>
+      <p class="section-subtitle">A glimpse into the Expense Tracker interface. (Actual screenshots coming soon.)</p>
+
+      <div class="screenshots-grid">
+        <div class="screenshot-card">
+          <div class="screenshot-placeholder">📊</div>
+          <div class="caption">Dashboard with analytics and charts</div>
+        </div>
+        <div class="screenshot-card">
+          <div class="screenshot-placeholder">💼</div>
+          <div class="caption">Payroll management view</div>
+        </div>
+        <div class="screenshot-card">
+          <div class="screenshot-placeholder">🧾</div>
+          <div class="caption">Expense tracking with categories</div>
+        </div>
+        <div class="screenshot-card">
+          <div class="screenshot-placeholder">⚙️</div>
+          <div class="caption">Settings & profile management</div>
+        </div>
+        <div class="screenshot-card">
+          <div class="screenshot-placeholder">🌓</div>
+          <div class="caption">Dark & light theme support</div>
+        </div>
+        <div class="screenshot-card">
+          <div class="screenshot-placeholder">🔐</div>
+          <div class="caption">Secure login & registration</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Footer ===== -->
+  <footer>
+    <div class="footer-inner">
+      <p>💰 Expense Tracker &mdash; Open source under MIT License</p>
+      <div class="social-links">
+        <a href="https://github.com/HolliShake/expense-tracker" target="_blank" rel="noopener">GitHub</a>
+        <a href="#" onclick="document.getElementById('installation').scrollIntoView({behavior:'smooth'}); return false;">Documentation</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ===== Theme Toggle =====
+    function toggleTheme() {
+      const html = document.documentElement;
+      const btn = document.getElementById('themeToggle');
+      const current = html.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      btn.textContent = next === 'dark' ? '🌙' : '☀️';
+      localStorage.setItem('theme', next);
+    }
+
+    // Restore saved theme
+    (function () {
+      const saved = localStorage.getItem('theme');
+      if (saved) {
+        document.documentElement.setAttribute('data-theme', saved);
+        document.getElementById('themeToggle').textContent = saved === 'dark' ? '🌙' : '☀️';
+      }
+    })();
+
+    // ===== Mobile Menu =====
+    function toggleMobileMenu() {
+      const links = document.getElementById('navLinks');
+      links.classList.toggle('open');
+    }
+
+    // Close mobile menu on link click
+    document.querySelectorAll('.nav-links a').forEach(a => {
+      a.addEventListener('click', () => {
+        document.getElementById('navLinks').classList.remove('open');
+      });
+    });
+
+    // ===== Copy to Clipboard =====
+    document.querySelectorAll('pre code').forEach(block => {
+      const pre = block.parentElement;
+      const btn = document.createElement('button');
+      btn.className = 'copy-btn';
+      btn.textContent = '📋 Copy';
+      btn.onclick = async () => {
+        const text = block.textContent;
+        try {
+          await navigator.clipboard.writeText(text);
+          btn.textContent = '✅ Copied!';
+          btn.classList.add('copied');
+          setTimeout(() => {
+            btn.textContent = '📋 Copy';
+            btn.classList.remove('copied');
+          }, 2000);
+        } catch {
+          btn.textContent = '❌ Failed';
+        }
+      };
+      pre.style.position = 'relative';
+      pre.prepend(btn);
+    });
+  </script>
+</body>
+</html>
