@@ -473,7 +473,10 @@ export default function SalaryPage() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => handleOpenDialog(salary)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenDialog(salary);
+                              }}
                               className="h-8 w-8"
                             >
                               <Pencil className="h-4 w-4" />
@@ -481,7 +484,10 @@ export default function SalaryPage() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => handleDelete(salary)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDelete(salary);
+                              }}
                               className="h-8 w-8 text-destructive hover:text-destructive"
                             >
                               <Trash2 className="h-4 w-4" />
